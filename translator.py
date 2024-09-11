@@ -4,6 +4,7 @@ from enum import Enum
 from llama_index.llms.ollama import Ollama
 import ollama
 import sys
+import chardet
 
 output_dir = 'output/'
 
@@ -32,6 +33,12 @@ class Language(Enum):
             if lang.code == code.lower():
                 return lang
         raise ValueError(f"No se encontró un idioma con el código '{code}'")
+
+def detect_encoding(file_path):
+    with open(file_path, 'rb') as file:
+        raw_data = file.read()
+    result = chardet.detect(raw_data)
+    return result['encoding']
 
 def language_choice(value):
     try:
@@ -114,18 +121,21 @@ def process_file(file_path, language, model):
     print(f"Processing file: {file_path}")
     print(f"Output language: {language}")
     
-    #Open the file
-    with open(file_path, 'r', encoding='utf-8') as file:
+    # Detect the file encoding
+    file_encoding = detect_encoding(file_path)
+    print(f"Detected file encoding: {file_encoding}")
+    
+    # Open the file with the detected encoding
+    with open(file_path, 'r', encoding=file_encoding) as file:
         content = file.read()
     
-    #Translate the content
+    # Translate the content
     translated_content = translate_text(content, language, model)
     
-    #Generate the output file path
-    output_filename = f"{os.path.splitext(os.path.basename(file_path))[0]}_{language.code}.txt"
-    output_path = os.path.join(output_dir, output_filename)
+    # Generate the output file path
+    output_path = os.path.join(output_dir, file_path)
     
-    #Save the file
+    # Save the file (using UTF-8 encoding for the output)
     with open(output_path, 'w', encoding='utf-8') as file:
         file.write(translated_content)
     
