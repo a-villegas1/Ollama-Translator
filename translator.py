@@ -84,8 +84,8 @@ def main():
                         help="Path to the input file")
     parser.add_argument('-d', '--directory', type=str, 
                         help="Path to the input directory")
-    parser.add_argument('-m', '--model', type=str, default='llama3.1:latest',
-                        help="Ollama model to use for translation (default: llama3.1)")
+    parser.add_argument('-m', '--model', type=str, default='llama3:latest',
+                        help="Ollama model to use for translation (default: llama3)")
     
     args = parser.parse_args()
     
