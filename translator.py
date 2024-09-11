@@ -86,7 +86,8 @@ def main():
     input_file = args.file
     input_directory = args.directory
     model = args.model
-    
+
+    #Check if the model is arleady pulled else, is pulled
     if not check_ollama_model(model):
         pull_ollama_model(model)
     
@@ -95,26 +96,36 @@ def main():
     elif not input_file and not input_directory:
         parser.error("You must provide either a file or a directory.")
 
-    # Crear el directorio de salida si no existe
+    # Creating the output directory if it isn't exist
     os.makedirs(output_dir, exist_ok=True)
     
     if input_file:
-        process_file(input_file, output_language, model)
+        if os.path.isfile(input_file):
+            process_file(input_file, output_language, model)
+        else:
+            parser.error("The path you provide isn't a file")
     elif input_directory:
-        process_directory(input_directory, output_language, model)
+        if os.path.isdir(input_directory):
+            process_directory(input_directory, output_language, model)
+        else:
+            parser.error("The path you provide isn't a directory")
 
 def process_file(file_path, language, model):
     print(f"Processing file: {file_path}")
     print(f"Output language: {language}")
     
+    #Open the file
     with open(file_path, 'r', encoding='utf-8') as file:
         content = file.read()
     
+    #Translate the content
     translated_content = translate_text(content, language, model)
     
+    #Generate the output file path
     output_filename = f"{os.path.splitext(os.path.basename(file_path))[0]}_{language.code}.txt"
     output_path = os.path.join(output_dir, output_filename)
     
+    #Save the file
     with open(output_path, 'w', encoding='utf-8') as file:
         file.write(translated_content)
     
@@ -122,12 +133,17 @@ def process_file(file_path, language, model):
 
 def process_directory(dir_path, language, model):
     print(f"Processing directory: {dir_path}")
-    print(f"Output language: {language}")
+
+    #Create the directory in the output directory
+    os.makedirs(output_dir + dir_path, exist_ok=True)
     
     for filename in os.listdir(dir_path):
         if filename.endswith(".txt") or filename.endswith(".csv"):
             file_path = os.path.join(dir_path, filename)
-            process_file(file_path, language, model)
+            if os.path.isdir(file_path):
+                process_directory(file_path,language, model)
+            else:
+                process_file(file_path, language, model)
 
 def translate_text(text, language, model):
     prompt = f"Translate the following text to {language.full_name}. It's important you keep the input format and don't add other thing than the translation:\n\n{text}\n\nTranslation:"
