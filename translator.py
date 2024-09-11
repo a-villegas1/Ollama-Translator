@@ -117,6 +117,25 @@ def main():
         else:
             parser.error("The path you provide isn't a directory")
 
+def chunk_content(content, chunk_size=1000):
+    """Split the content into chunks of approximately chunk_size characters."""
+    chunks = []
+    current_chunk = []
+    current_size = 0
+    
+    for line in content.split('\n'):
+        if current_size + len(line) > chunk_size and current_chunk:
+            chunks.append('\n'.join(current_chunk))
+            current_chunk = []
+            current_size = 0
+        current_chunk.append(line)
+        current_size += len(line) + 1  # +1 for the newline character
+    
+    if current_chunk:
+        chunks.append('\n'.join(current_chunk))
+    
+    return chunks
+
 def process_file(file_path, language, model):
     print(f"Processing file: {file_path}")
     print(f"Output language: {language}")
@@ -129,11 +148,25 @@ def process_file(file_path, language, model):
     with open(file_path, 'r', encoding=file_encoding) as file:
         content = file.read()
     
-    # Translate the content
-    translated_content = translate_text(content, language, model)
+    # Split the content into chunks
+    chunks = chunk_content(content)
+    print(f"Split content into {len(chunks)} chunks")
+    
+    # Translate each chunk
+    translated_chunks = []
+    for i, chunk in enumerate(chunks):
+        print(f"Translating chunk {i+1}/{len(chunks)}...")
+        translated_chunk = translate_text(chunk, language, model)
+        translated_chunks.append(translated_chunk)
+    
+    # Join the translated chunks
+    translated_content = '\n'.join(translated_chunks)
     
     # Generate the output file path
     output_path = os.path.join(output_dir, file_path)
+    
+    # Ensure the output directory exists
+    os.makedirs(os.path.dirname(output_path), exist_ok=True)
     
     # Save the file (using UTF-8 encoding for the output)
     with open(output_path, 'w', encoding='utf-8') as file:
@@ -156,14 +189,14 @@ def process_directory(dir_path, language, model):
                 process_file(file_path, language, model)
 
 def translate_text(text, language, model):
-    prompt = f"""Translate the following text to {language.full_name}. Follow these instructions carefully:
+    prompt = f"""You are a profesional dataset traductor. Translate the following dataset text to {language.full_name}. Follow these instructions carefully:
+First, only keep the translation in the result.
+Second as the text is a dataset, please, maintain the exact input format in your translation. This includes preserving all line breaks, spacing, and punctuation.
+Third, do not add any explanations, notes, or content other than the direct translation and do not include any text outside of the translation itself - no introductions, conclusions, or meta-commentary.
+Fourth, if a single term in the source language translates to multiple words in the target language, join these words with underscores. For example, 'smartphone' in English might become 'teléfono_inteligente' in Spanish.
+Fifth, preserve any special characters, numbers, or untranslatable elements exactly as they appear in the original text.
+Sixth, if there are any ambiguous terms or phrases, choose the most appropriate translation based on the context.
 
-1. Maintain the exact input format in your translation. This includes preserving all line breaks, spacing, and punctuation.
-2. Do not add any explanations, notes, or content other than the direct translation.
-3. If a single term in the source language translates to multiple words in the target language, join these words with underscores. For example, 'smartphone' in English might become 'teléfono_inteligente' in Spanish.
-4. Preserve any special characters, numbers, or untranslatable elements exactly as they appear in the original text.
-5. If there are any ambiguous terms or phrases, choose the most appropriate translation based on the context.
-6. Do not include any text outside of the translation itself - no introductions, conclusions, or meta-commentary.
 
 Here is the text to translate:
 
