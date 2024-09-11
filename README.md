@@ -24,7 +24,7 @@ Before you can use this tool, make sure you have the following installed:
 2. Install the required Python packages:
 
    ```
-   pip install llama-index ollama argparse chardet
+   pip install llama-index-llm-ollama ollama argparse chardet
    ```
 
 3. Make sure Ollama is running on your system.
