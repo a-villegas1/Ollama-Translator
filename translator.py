@@ -156,7 +156,20 @@ def process_directory(dir_path, language, model):
                 process_file(file_path, language, model)
 
 def translate_text(text, language, model):
-    prompt = f"Translate the following text to {language.full_name}. It's important you keep the input format and don't add other thing than the translation:\n\n{text}\n\nTranslation:"
+    prompt = f"""Translate the following text to {language.full_name}. Follow these instructions carefully:
+
+1. Maintain the exact input format in your translation. This includes preserving all line breaks, spacing, and punctuation.
+2. Do not add any explanations, notes, or content other than the direct translation.
+3. If a single term in the source language translates to multiple words in the target language, join these words with underscores. For example, 'smartphone' in English might become 'teléfono_inteligente' in Spanish.
+4. Preserve any special characters, numbers, or untranslatable elements exactly as they appear in the original text.
+5. If there are any ambiguous terms or phrases, choose the most appropriate translation based on the context.
+6. Do not include any text outside of the translation itself - no introductions, conclusions, or meta-commentary.
+
+Here is the text to translate:
+
+{text}
+
+Translation:"""
     response = ollama.generate(model=model, prompt=prompt)
     return response['response']
 
