@@ -34,7 +34,7 @@ Before you can use this tool, make sure you have the following installed:
 The basic syntax for using the script is:
 
 ```
-python script.py -l <language_code> [-f <file_path> | -d <directory_path>] [-m <model_name>]
+python translator.py -l <language_code> [-f <file_path> | -d <directory_path>] [-m <model_name>]
 ```
 
 ### Arguments:
